@@ -21,9 +21,15 @@ def inicio():
                 soup = BeautifulSoup(fp)
             soup = soup.find("div", {"id": "productos-body"})
             soup = soup.find_all("p")
-            print(soup)
+            compuestos = None
+            for datos in soup:
+                datos      = datos.find("a").getText()
+                if 'mg' in datos or '%' in datos:
+                    compuestos = datos.split(" ")
+                    compuestos = compuestos[0]
             return jsonify(
-                    datos = data['remedio']
+                    remedio   = data['remedio'],
+                    compuesto = compuestos
                 )
         except Exception as e:
             return jsonify(
