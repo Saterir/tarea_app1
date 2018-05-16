@@ -16,12 +16,19 @@ def inicio():
         data = request.json
         try:
             #Aciclovir
-            with open("https://www.laboratoriochile.cl/productos/?nombre-producto="+data['remedio']) as fp:
+            url = urllib.request.urlopen("https://www.laboratoriochile.cl/productos/?nombre-producto="+data['remedio'])
+            with url as fp:
                 soup = BeautifulSoup(fp)
             soup = soup.find("div", {"id": "productos-body"})
             soup = soup.find_all("p")
+            print(soup)
+            return jsonify(
+                    datos = data['remedio']
+                )
         except Exception as e:
-            return e
+            return jsonify(
+                    error = e
+                )
     else:
         return 'nada que ver...'
 if __name__ == '__main__':
