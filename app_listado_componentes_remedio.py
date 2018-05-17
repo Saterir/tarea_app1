@@ -37,5 +37,40 @@ def inicio():
                 )
     else:
         return 'nada que ver...'
+
+#https://vsearch.nlm.nih.gov/vivisimo/cgi-bin/query-meta?v%3Aproject=medlineplus-spanish&v%3Asources=medlineplus-spanish-bundle&query=Galactosemia&_ga=2.158284350.541628268.1526482269-1655826678.1516816113
+
+@app.route('/buscarterminomedico', methods = ['GET','POST'])
+
+def buscarterminomedico():
+    data = None
+    if request.method == 'POST':
+        data = request.json
+        try:
+            url = urllib.request.urlopen("https://vsearch.nlm.nih.gov/vivisimo/cgi-bin/query-meta?v%3Aproject=medlineplus-spanish&v%3Asources=medlineplus-spanish-bundle&query="+data['termino']+"&_ga=2.158284350.541628268.1526482269-1655826678.1516816113")
+            with url as fp:
+                soup = BeautifulSoup(fp)
+            soup = soup.find("li", {"id": "doc-Ndoc1"})
+            soup = soup.find("div", {"class": "document-footer"})
+            soup = soup.find("span", {"class": "url"}).getText()
+            url  = urllib.request.urlopen(soup)
+            with url as fp:
+                soup = BeautifulSoup(fp)
+            queEs  = soup.find("div", {"id": "ency_summary"}).getText()
+            causas = soup.find("div", {"class": "section-body"}).getText()
+            print(queEs)
+            print("-------------")
+            print(causas)
+            return jsonify(
+                    termino = data['termino'],
+                    que_es   = queEs,
+                    causa  = causas
+                )
+        except Exception as e:
+            return jsonify(
+                    error = e
+                )
+    else:
+        return 'nada que ver...med'
 if __name__ == '__main__':
    app.run(host='0.0.0.0',debug = True , port = 5001)
