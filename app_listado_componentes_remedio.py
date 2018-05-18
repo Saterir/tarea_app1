@@ -25,7 +25,7 @@ def remedio():
             "compuesto": "Aciclovir",
             "remedio": "Aciclovir"
         }
-
+        Nota: para los ".", " ", deben ser remplazados por "-".
     """
     data = None
     if request.method == 'POST':
@@ -72,6 +72,7 @@ def buscarterminomedico():
             "que_es": "Es el crecimiento de tejido cicatricial adicional. Se presenta en donde la piel ha sanado después de una lesión.",
             "termino": "Queloides"
         }
+        Nota: los espacios en blanco, se remplazan por "+" y se omiten los acentos.
     """
     data = None
     if request.method == 'POST':
@@ -82,7 +83,6 @@ def buscarterminomedico():
                 soup = BeautifulSoup(fp)
             soup = soup.find("ol", {"class": "results"})
             soup = soup.find_all("li", {"class": "document source-medical-sites-spanish"})
-            #print (soup[0])
             cont = 0
             for sopa in soup:
                 sopa = sopa.find("span", {"class": "url"}).getText()
