@@ -25,7 +25,7 @@ def remedio():
             "compuesto": "Aciclovir",
             "remedio": "Aciclovir"
         }
-        Nota: para los ".", " ", deben ser remplazados por "-".
+        Nota: para los " ", deben ser remplazados por "+" y todo debe estar en minuscula.
     """
     data = None
     if request.method == 'POST':
@@ -40,7 +40,7 @@ def remedio():
             compuestos = None
             for datos in soup:
                 datos      = datos.find("a").getText()
-                if 'mg' in datos or '%' in datos:
+                if 'mg' in datos or '%' in datos or 'g' in datos:
                     compuestos = datos.split(" ")
                     compuestos = compuestos[0]
             return jsonify(
@@ -112,5 +112,57 @@ def buscarterminomedico():
                 )
     else:
         return 'nada que ver...med'
+
+@app.route('/buscarcompuesto', methods = ['GET','POST'])
+
+def buscarcompuesto():
+    data = None
+    if request.method == 'POST':
+        data = request.json
+        try:
+            url = urllib.request.urlopen("https://vsearch.nlm.nih.gov/vivisimo/cgi-bin/query-meta?v%3Aproject=medlineplus-spanish&v%3Asources=medlineplus-spanish-bundle&query="+data['compuesto']+"&_ga=2.158284350.541628268.1526482269-1655826678.1516816113")
+            with url as fp:
+                soup = BeautifulSoup(fp)
+            if soup.find("ol", {"class": "results"}):
+                soup = soup.find("ol", {"class": "results"})
+                print(soup)
+            soup = soup.find_all("li", {"class": "document source-drugs-spanish"})
+            cont = 0
+            for sopa in soup:
+                sopa = sopa.find("span", {"class": "url"}).getText()
+                #or "https://medlineplus.gov/spanish/druginfo/natural/" in sopa
+                if "https://medlineplus.gov/spanish/druginfo/meds/" in sopa: 
+                    url  = urllib.request.urlopen(sopa)
+                    #print(sopa)
+                    with url as fp2:
+                        soup2 = BeautifulSoup(fp2)
+                    articulo = soup2.find("article")
+                    articulo = articulo.find("div", {"id": "section-side-effects"})
+                    articulo = BeautifulSoup(str(articulo).replace("<li>", "--"))
+                    articulo = BeautifulSoup(str(articulo).replace("<h3>", "--|"))
+                    #print(articulo)
+                    # print(articulo)
+                    # queEs  = soup2.find("div", {"id": "ency_summary"}).getText()
+                    # causas = soup2.find("div", {"class": "section-body"}).getText()
+                    cont += 1
+
+                    return jsonify(
+                        termino = data['compuesto'],
+                        datos   = articulo.text
+                    )
+
+            if cont == 0:
+                return jsonify(
+                    termino = data['compuesto'],
+                    resultado = "Ups.... Termino no encontrado en medlineplus"
+                )
+
+        except Exception as e:
+            return jsonify(
+                    error = e
+                )
+    else:
+        return 'nada que ver...med'
+
 if __name__ == '__main__':
    app.run(host='0.0.0.0',debug = True , port = 5001)
