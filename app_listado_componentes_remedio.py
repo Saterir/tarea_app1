@@ -183,5 +183,26 @@ def buscarcompuesto():
     else:
         return 'nada que ver...med'
 
+@app.route('/busqueda_tesauro', methods = ['GET','POST'])
+
+def busqueda_tesauro():
+    data = None
+    if request.method == 'POST':
+        data = request.json
+        try:
+            #Ear+pain
+            url = urllib.request.urlopen("https://www.freethesaurus.com/"+data['sintoma'])
+            with url as fp:
+                soup = BeautifulSoup(fp)
+            if soup.find("svg", {"id": "vtsvg"}):
+                center_node = soup.find("text").getText()
+                all_relations = soup.find_all("g")
+                print(soup)
+        except Exception as e:
+            return jsonify(
+                    error = e
+                )
+    else:
+        return 'nada que ver...med'
 if __name__ == '__main__':
    app.run(host='0.0.0.0',debug = True , port = 5001)
