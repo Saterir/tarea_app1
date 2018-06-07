@@ -5,6 +5,7 @@ import os
 import uuid
 import urllib.request
 from bs4 import BeautifulSoup
+import re
 
 app = Flask(__name__)
 
@@ -60,10 +61,10 @@ def buscarterminomedico():
     """
         Funcion que permite buscar terminos atomicos en la enciclopedia médica de medlineplus
         el json de entrado es de la siguiente forma:
-        
+
         {
 	        "termino":"Queloides"
-        }    
+        }
 
         la salida es de la forma:
 
@@ -131,7 +132,7 @@ def buscarcompuesto():
             for sopa in soup:
                 sopa = sopa.find("span", {"class": "url"}).getText()
                 #or "https://medlineplus.gov/spanish/druginfo/natural/" in sopa
-                if "https://medlineplus.gov/spanish/druginfo/meds/" in sopa: 
+                if "https://medlineplus.gov/spanish/druginfo/meds/" in sopa:
                     url  = urllib.request.urlopen(sopa)
                     #print(sopa)
                     with url as fp2:
@@ -145,10 +146,28 @@ def buscarcompuesto():
                     # queEs  = soup2.find("div", {"id": "ency_summary"}).getText()
                     # causas = soup2.find("div", {"class": "section-body"}).getText()
                     cont += 1
+                    #datos= articulo.text.split(':' ,1)[1]def challa(text):
+
+                    def challa(text):
+                        for i in text:
+                            if i.isupper():
+                                return str(text.split(i,1)[0])
+
+                    datos= articulo.text.split(':' ,1)[1].split('--')
+                    largo=len(datos)-1
+                    datos[largo]=challa(datos[largo])
+                    for i in range(len(datos)):
+                        sacar=False
+                        for k in range(len(datos[i])):
+                            if (datos[i][k] == ':' or datos[i][k] =='|' ):
+                                sacar=True
+                        if(sacar==True):
+                            datos[i]=''
+                            #datos[i]=''
 
                     return jsonify(
                         termino = data['compuesto'],
-                        datos   = articulo.text
+                        datos=datos,
                     )
 
             if cont == 0:
