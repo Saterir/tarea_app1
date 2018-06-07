@@ -191,13 +191,19 @@ def busqueda_tesauro():
         data = request.json
         try:
             #Ear+pain
+            print("Hola")
             url = urllib.request.urlopen("https://www.freethesaurus.com/"+data['sintoma'])
             with url as fp:
                 soup = BeautifulSoup(fp)
-            if soup.find("svg", {"id": "vtsvg"}):
-                center_node = soup.find("text").getText()
-                all_relations = soup.find_all("g")
-                print(soup)
+            soup = soup.find("section", {"data-src": "wn"})
+            print(soup)
+            # if soup.find("svg", {"id": "vtsvg"}):
+            #     center_node = soup.find("text").getText()
+            #     all_relations = soup.find_all("g")
+            #     print(soup)
+            return jsonify(
+                    error = "a"
+                )
         except Exception as e:
             return jsonify(
                     error = e
