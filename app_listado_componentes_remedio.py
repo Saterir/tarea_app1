@@ -207,5 +207,42 @@ def busqueda_tesauro():
     else:
         return 'nada que ver...med'
 
+@app.route('/busqueda_enfermedades', methods = ['GET','POST'])
+
+def busqueda_enfermedades():
+    data = None
+    if request.method == 'POST':
+        data = request.json
+        try:
+            az = ['A','B','C','D','F','G','H','I','J','L','M','O','P','R','S','T','U','V']
+            for index in az:
+                #print(index)
+                url = urllib.request.urlopen("https://cuidateplus.marca.com/enfermedades/"+index+".html")
+                #url = urllib.request.urlopen("https://cuidateplus.marca.com/enfermedades/A.html")
+                with url as fp:
+                    soup = BeautifulSoup(fp)
+                links = soup.find("ul", {"class": "ul cuadruple-col"})
+                links = links.find_all("a")
+                for link_url in links:
+                    name = link_url.getText()
+                    print(name)
+                    link = link_url.get('href')
+                    link = urllib.request.urlopen(link)
+                    with link as fp2:
+                        sintomas = BeautifulSoup(fp2)
+                    sintomas = sintomas.find("div", {"id": "sintomas"})
+                    print(sintomas)
+                    print("--------------------------")
+            #soup = soup.find("section", {"data-src": "wn"}).getText()
+            #print(soup)
+            return jsonify(
+                    error = "a"
+                )
+        except Exception as e:
+            return jsonify(
+                    error = e
+                )
+    else:
+        return 'nada que ver...med'
 if __name__ == '__main__':
    app.run(host='0.0.0.0',debug = True , port = 5001)
