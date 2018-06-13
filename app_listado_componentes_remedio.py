@@ -6,6 +6,35 @@ import uuid
 import urllib.request
 from bs4 import BeautifulSoup
 import re
+import pymysql.cursors
+import psycopg2
+
+#usuario analitica
+#contraseña 159753.analitica
+#port 5432
+#localhost
+
+# INSERT INTO public.analitica(enfermedad, sintomas, url) VALUES ('prueba', 'pru', 'ba');
+# cursor                  = PosgreSQL_DB_connect(DB_NAME,DB_USER,DB_HOST,DB_PASSWORD,DB_PORT)  
+#                         query                   = "SELECT DISTINCT categoria FROM public.maestro_productos2 WHERE (descripcion like '%reciclable%' OR descripcion like '%gico%' OR descripcion like '%biodegradable%') AND sub_categoria = '"+SUB_CATEGORY+"' ORDER BY 1"
+#                         query_response = Send_Query_To_DB(QUERY, DB_CONNECTION)
+
+def Send_Query_To_DB(QUERY,CONNECTION):
+    try:    
+        CONNECTION.execute(QUERY)
+        row = CONNECTION.fetchall()
+        return row
+    except Exception as e:
+        return jsonify({'Error':"query error", 'Error_console':e})
+
+def PosgreSQL_DB_connect(DB_NAME,DB_USER,DB_HOST,DB_PASSWORD,DB_PORT):
+    try:
+        connect_string = "dbname='"+DB_NAME+"' user='"+DB_USER+"' host='"+DB_HOST+"' password='"+DB_PASSWORD+"' port='"+DB_PORT+"'"
+        connect = psycopg2.connect(connect_string)
+        cursor = connect.cursor()
+        return cursor
+    except Exception as e:
+        return jsonify({'Error':"database connection don't work", 'Error_console':e})
 
 app = Flask(__name__)
 
@@ -210,6 +239,11 @@ def busqueda_tesauro():
 @app.route('/busqueda_enfermedades', methods = ['GET','POST'])
 
 def busqueda_enfermedades():
+    DB_NAME     = 'datos'
+    DB_USER     = 'analitica'
+    DB_HOST     = 'localhost'
+    DB_PASSWORD = '159753.analitica'
+    DB_PORT     = '5432'
     data = None
     if request.method == 'POST':
         data = request.json
@@ -231,12 +265,29 @@ def busqueda_enfermedades():
                     with link as fp2:
                         sintomas = BeautifulSoup(fp2)
                     sintomas = sintomas.find("div", {"id": "sintomas"})
-                    print(sintomas)
+                    print(sintomas.getText())
                     print("--------------------------")
+                    #sintomas = BeautifulSoup(str(sintomas).replace("<li>", "--"))
+                    # sintomas = BeautifulSoup(str(sintomas).replace("'", " "))
+                    # sintomas = BeautifulSoup(str(sintomas).replace('"', " "))
+                    try:
+                        connect_string = "dbname='"+DB_NAME+"' user='"+DB_USER+"' host='"+DB_HOST+"' password='"+DB_PASSWORD+"' port='"+DB_PORT+"'"
+                        connect = psycopg2.connect(connect_string)
+                        cursor = connect.cursor()
+                        query = "INSERT INTO public.analitica(enfermedad, sintomas, url) VALUES (%s, %s, %s);"
+                        datas = (name,str(sintomas.getText()),'a')
+                        cursor.execute(query, datas)
+                        connect.commit()
+                        cursor.close()
+                        connect.close()
+                    except Exception as e:
+                        pass
+                    
+
             #soup = soup.find("section", {"data-src": "wn"}).getText()
             #print(soup)
             return jsonify(
-                    error = "a"
+                    status = 200
                 )
         except Exception as e:
             return jsonify(
